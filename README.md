@@ -4,8 +4,8 @@ Paste or **share** a link to a cooking video from TikTok, Instagram Reels, or
 YouTube Shorts and get back a clean, structured recipe — title, servings,
 ingredient list, and numbered steps — saved to your account.
 
-> **Status:** Phase 0 (project scaffolding) complete. See the
-> [roadmap](#build-roadmap) below.
+> **Status:** Phase 1 (extraction core) complete — `POST /extract` turns a URL +
+> caption into a validated recipe. See the [roadmap](#build-roadmap) below.
 
 ---
 
@@ -117,6 +117,40 @@ See [`mobile/README.md`](mobile/README.md) for emulator/device networking notes.
 
 ---
 
+## Recipe extraction (Phase 1)
+
+`POST /extract` turns a URL + optional caption into a validated recipe. It runs
+caption-first, with optional audio (Whisper) and vision (Claude) signals behind
+the pluggable `VideoIngest` / `Transcriber` / `VisionReader` interfaces. The LLM
+returns structured JSON (via Anthropic structured outputs) which is validated
+against a strict pydantic contract before it's returned — raw model output is
+never trusted.
+
+```bash
+curl -s localhost:8000/extract \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "url": "https://www.tiktok.com/@chef/video/123",
+    "caption": "Garlic butter pasta — 200g spaghetti, 4 cloves garlic, 3 tbsp butter... 1) boil pasta 2) fry garlic 3) toss in parmesan"
+  }' | jq
+```
+
+Response shape: `{ recipe: {title, servings, ingredients[], steps[]}, source_platform, raw_extraction }`.
+A post with no usable recipe returns a friendly `422` ("couldn't find a recipe"),
+not a crash.
+
+Try it from a script (no UI needed):
+
+```bash
+cd backend && source .venv/bin/activate
+python -m scripts.extract_demo                          # built-in sample caption
+python -m scripts.extract_demo --url <url> --caption "<caption>"
+```
+
+This requires `ANTHROPIC_API_KEY` in `backend/.env`. `use_audio` / `use_vision`
+are accepted but only do work once a provider supplies media (best-effort; the
+default share-sheet path does not download media — see the ToS note above).
+
 ## Accounts & data
 
 - Email + password accounts: sign-up, log-in, log-out, email password reset.
@@ -167,7 +201,7 @@ All secrets live in environment variables — **never commit API keys**. Copy
 ## Build roadmap
 
 - [x] **Phase 0 — Setup:** repo structure, FastAPI skeleton, Expo skeleton, `.env.example`, README.
-- [ ] **Phase 1 — Extraction core:** `/extract` endpoint; caption + optional audio/vision → validated JSON via the LLM; testable from a script.
+- [x] **Phase 1 — Extraction core:** `/extract` endpoint; caption + optional audio/vision → validated JSON via the LLM; testable from a script.
 - [ ] **Phase 2 — Accounts:** sign-up / log-in / log-out / password reset; JWT; recipes tied to users; local-first migration.
 - [ ] **Phase 3 — Mobile app:** add-recipe, recipe view, my-recipes; wired to the backend.
 - [ ] **Phase 4 — Share sheet:** register as a share target on iOS + Android.

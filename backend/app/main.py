@@ -9,6 +9,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.extract import router as extract_router
 from app.api.health import router as health_router
 from app.config import get_settings
 
@@ -30,9 +31,9 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(health_router)
+    app.include_router(extract_router)
 
     # Routers added in later phases:
-    #   Phase 1: extraction router  (POST /extract)
     #   Phase 2: auth + recipes routers
     #   Phase 5: purchases/webhook router
     return app
