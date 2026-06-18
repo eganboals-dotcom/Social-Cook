@@ -4,8 +4,8 @@ Paste or **share** a link to a cooking video from TikTok, Instagram Reels, or
 YouTube Shorts and get back a clean, structured recipe — title, servings,
 ingredient list, and numbered steps — saved to your account.
 
-> **Status:** Phase 4 (share sheet) complete — the app registers as a share
-> target so users share posts straight into it. See the [roadmap](#build-roadmap) below.
+> **Status:** Phase 5 (monetization) complete — paywall + RevenueCat IAP with
+> server-side validated unlocks. See the [roadmap](#build-roadmap) below.
 
 ---
 
@@ -213,6 +213,27 @@ reset emails are logged by a console sender in dev — swap in a real provider v
 > Note: Apple/Google take ~15–30% of each $10. Selling access outside the app
 > (e.g. web purchase) would avoid the cut but has its own rules — out of scope for v1.
 
+### Endpoints & flow (Phase 5)
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/purchases/config` | The unlock numbers (price / increment / product id) — paywall reads these |
+| POST | `/purchases/webhook` | RevenueCat → server (shared-secret auth); **authoritative** crediting |
+| POST | `/purchases/validate` | Client-driven validate + **restore**: reconciles against RevenueCat's REST API |
+| GET | `/purchases` | The user's purchase history |
+
+Crediting is **idempotent** on the store `transaction_id` (plus a unique DB
+constraint), so the webhook and validate paths can't double-credit. The mobile
+paywall (`app/paywall.tsx`) opens on a `402`, runs the RevenueCat purchase behind
+a wrapper, then calls `/purchases/validate`.
+
+**To actually transact** you need: a RevenueCat account with the `recipe_unlock_25`
+consumable configured for App Store + Google Play, the public SDK keys in
+`mobile/.env` (`EXPO_PUBLIC_REVENUECAT_*`), the REST key + webhook secret in
+`backend/.env` (`REVENUECAT_API_KEY` / `REVENUECAT_WEBHOOK_AUTH`), and a dev/prod
+build (IAP doesn't run in Expo Go). Without keys, the app still runs and the
+paywall shows — it just can't complete a purchase.
+
 ---
 
 ## Secrets
@@ -229,5 +250,5 @@ All secrets live in environment variables — **never commit API keys**. Copy
 - [x] **Phase 2 — Accounts:** sign-up / log-in / log-out / password reset; JWT; recipes tied to users; local-first migration.
 - [x] **Phase 3 — Mobile app:** add-recipe, recipe view, my-recipes; wired to the backend.
 - [x] **Phase 4 — Share sheet:** register as a share target on iOS + Android.
-- [ ] **Phase 5 — Monetization:** cap tracking, paywall, RevenueCat IAP, server-side receipt validation, restore purchases.
+- [x] **Phase 5 — Monetization:** cap tracking, paywall, RevenueCat IAP, server-side receipt validation, restore purchases.
 - [ ] **Phase 6 — Polish:** error/empty/loading states, search, tests for extraction + cap logic.

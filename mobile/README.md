@@ -49,8 +49,11 @@ mobile/
   `POST /recipes/import`, then are cleared.
 - **Auth:** the JWT lives in `expo-secure-store` and is re-applied to the API
   client on launch; signing out clears it.
-- **Cap:** saving past the limit returns `402`; the app surfaces the message
-  (the full paywall / in-app-purchase flow lands in Phase 5).
+- **Cap & paywall:** saving past the limit returns `402` and opens the paywall
+  (`app/paywall.tsx`). Purchases go through RevenueCat (`react-native-purchases`,
+  behind `src/purchases/`) and are validated server-side. Set the
+  `EXPO_PUBLIC_REVENUECAT_*` keys and use a dev build to transact (IAP doesn't run
+  in Expo Go).
 
 ## Share sheet (Phase 4)
 

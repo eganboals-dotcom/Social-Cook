@@ -14,7 +14,9 @@ import type {
   RecipeSaveResponse,
   SavedRecipe,
   TokenResponse,
+  UnlockConfig,
   User,
+  ValidateResponse,
 } from '../types';
 
 let authToken: string | null = null;
@@ -120,4 +122,13 @@ export async function deleteRecipe(id: number): Promise<void> {
 
 export function importRecipes(items: RecipeCreate[]): Promise<RecipeImportResult> {
   return request('/recipes/import', { method: 'POST', body: JSON.stringify(items) });
+}
+
+// --- Monetization ---
+export function getUnlockConfig(): Promise<UnlockConfig> {
+  return request('/purchases/config');
+}
+
+export function validatePurchases(): Promise<ValidateResponse> {
+  return request('/purchases/validate', { method: 'POST' });
 }

@@ -18,6 +18,11 @@ import * as SecureStore from 'expo-secure-store';
 
 import * as api from '../api/client';
 import { setAuthToken } from '../api/client';
+import {
+  clearPurchasesUser,
+  configurePurchases,
+  setPurchasesUser,
+} from '../purchases/purchases';
 import { clearLocalRecipes, getLocalRecipes, toRecipeCreate } from '../storage/localRecipes';
 import type { TokenResponse, User } from '../types';
 
@@ -42,11 +47,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        configurePurchases();
         const token = await SecureStore.getItemAsync(TOKEN_KEY);
         if (token) {
           setAuthToken(token);
           try {
-            setUser(await api.me());
+            const restored = await api.me();
+            setUser(restored);
+            await setPurchasesUser(String(restored.id));
           } catch {
             await SecureStore.deleteItemAsync(TOKEN_KEY);
             setAuthToken(null);
@@ -74,6 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await SecureStore.setItemAsync(TOKEN_KEY, resp.access_token);
       setAuthToken(resp.access_token);
       setUser(resp.user);
+      await setPurchasesUser(String(resp.user.id));
       await migrateLocalRecipes();
       try {
         setUser(await api.me());
@@ -98,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     setAuthToken(null);
     setUser(null);
+    await clearPurchasesUser();
   }, []);
 
   const forgotPassword = useCallback(async (email: string) => {

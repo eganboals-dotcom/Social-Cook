@@ -54,6 +54,10 @@ export default function RootLayout() {
               options={{ title: 'Reset password', presentation: 'modal' }}
             />
             <Stack.Screen name="recipe/[id]" options={{ title: 'Recipe' }} />
+            <Stack.Screen
+              name="paywall"
+              options={{ title: 'Unlock recipes', presentation: 'modal' }}
+            />
           </Stack>
         </AuthProvider>
       </SafeAreaProvider>

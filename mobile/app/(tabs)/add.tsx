@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import * as api from '../../src/api/client';
@@ -110,7 +110,8 @@ export default function AddScreen() {
       }
     } catch (e) {
       if (e instanceof ApiError && e.status === 402) {
-        Alert.alert('Recipe limit reached', e.message, [{ text: 'OK' }]);
+        // Over the saved-recipe cap — open the paywall.
+        router.push('/paywall');
       } else {
         setError(e instanceof ApiError ? e.message : 'Could not save this recipe.');
       }

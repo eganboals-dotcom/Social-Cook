@@ -74,3 +74,16 @@ export interface TokenResponse {
   token_type: string;
   user: User;
 }
+
+export interface UnlockConfig {
+  free_cap: number;
+  cap_increment: number;
+  unlock_price_usd: number;
+  product_id: string;
+}
+
+export interface ValidateResponse {
+  credited: number;
+  saved_recipe_cap: number;
+  saved_recipe_count: number;
+}

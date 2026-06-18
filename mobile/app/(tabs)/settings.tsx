@@ -1,14 +1,16 @@
 import { Alert, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
+import * as api from '../../src/api/client';
 import { useAuth } from '../../src/auth/AuthContext';
 import { Banner } from '../../src/components/Banner';
 import { Button } from '../../src/components/Button';
 import { Screen } from '../../src/components/Screen';
+import { restorePurchases } from '../../src/purchases/purchases';
 import { colors, radius, spacing } from '../../src/theme';
 
 export default function SettingsScreen() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, refreshUser } = useAuth();
   const router = useRouter();
 
   if (user) {
@@ -21,12 +23,20 @@ export default function SettingsScreen() {
             {user.saved_recipe_count} of {user.saved_recipe_cap} recipes saved
           </Text>
         </View>
+        <Button title="Unlock more recipes" onPress={() => router.push('/paywall')} />
         <Button
           title="Restore purchases"
           variant="secondary"
-          onPress={() =>
-            Alert.alert('Coming soon', 'In-app purchases arrive in a later update.')
-          }
+          onPress={async () => {
+            try {
+              await restorePurchases();
+              await api.validatePurchases();
+              await refreshUser();
+              Alert.alert('Restore complete', 'Your purchases have been restored.');
+            } catch {
+              Alert.alert('Restore failed', 'Could not restore purchases right now.');
+            }
+          }}
         />
         <Button
           title="Log out"

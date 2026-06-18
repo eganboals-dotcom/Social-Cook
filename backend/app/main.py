@@ -14,6 +14,7 @@ from slowapi.errors import RateLimitExceeded
 from app.api.auth import router as auth_router
 from app.api.extract import router as extract_router
 from app.api.health import router as health_router
+from app.api.purchases import router as purchases_router
 from app.api.recipes import router as recipes_router
 from app.config import get_settings
 from app.rate_limit import limiter
@@ -43,9 +44,8 @@ def create_app() -> FastAPI:
     app.include_router(extract_router)
     app.include_router(auth_router)
     app.include_router(recipes_router)
+    app.include_router(purchases_router)
 
-    # Routers added in later phases:
-    #   Phase 5: purchases/webhook router
     return app
 
 
