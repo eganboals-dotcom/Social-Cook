@@ -9,6 +9,7 @@ uvicorn[standard]>=0.30
 # --- Validation / settings ---
 pydantic>=2.7
 pydantic-settings>=2.3
+email-validator>=2.1        # EmailStr validation for auth
 
 # --- Database (Phase 2+) ---
 SQLAlchemy>=2.0

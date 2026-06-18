@@ -4,8 +4,8 @@ Paste or **share** a link to a cooking video from TikTok, Instagram Reels, or
 YouTube Shorts and get back a clean, structured recipe — title, servings,
 ingredient list, and numbered steps — saved to your account.
 
-> **Status:** Phase 1 (extraction core) complete — `POST /extract` turns a URL +
-> caption into a validated recipe. See the [roadmap](#build-roadmap) below.
+> **Status:** Phase 2 (accounts) complete — email/password auth with JWT, and
+> recipes saved per-user behind a cap. See the [roadmap](#build-roadmap) below.
 
 ---
 
@@ -92,6 +92,7 @@ cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt        # or requirements.lock.txt for exact pins
 cp ../.env.example .env                 # then fill in ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.
+alembic upgrade head                     # create the DB schema (needs Postgres running)
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -173,6 +174,29 @@ and offers to open the existing recipe — re-extraction is sometimes wanted.
 
 ---
 
+### Auth & recipe endpoints (Phase 2)
+
+Recipe endpoints require an `Authorization: Bearer <token>` header (from signup/login).
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| POST | `/auth/signup` | Create account → JWT + user |
+| POST | `/auth/login` | Log in → JWT + user |
+| POST | `/auth/logout` | Acknowledge logout (JWT discarded client-side) |
+| POST | `/auth/forgot-password` | Email a reset link (dev: logged to console) |
+| POST | `/auth/reset-password` | Set a new password from a reset token |
+| GET | `/auth/me` | Current user + saved count/cap |
+| POST | `/recipes` | Save a recipe (cap-checked; soft-dedupes by URL) |
+| GET | `/recipes?q=` | List/search the user's recipes + "X of Y saved" |
+| GET / PATCH / DELETE | `/recipes/{id}` | View / edit / delete one recipe |
+| POST | `/recipes/import` | Bulk-import local recipes (migration on sign-up) |
+
+Passwords are **argon2**-hashed; auth endpoints are **rate-limited** (slowapi).
+Saving past the cap returns **`402`** with `{saved_recipe_count, saved_recipe_cap}`
+so the client can open the paywall. Schema is managed with **Alembic**. Password
+reset emails are logged by a console sender in dev — swap in a real provider via
+`app/email.py` for production.
+
 ## Monetization (freemium)
 
 - **25 recipes free.** Each additional **$10** unlock raises the cap by 25
@@ -202,7 +226,7 @@ All secrets live in environment variables — **never commit API keys**. Copy
 
 - [x] **Phase 0 — Setup:** repo structure, FastAPI skeleton, Expo skeleton, `.env.example`, README.
 - [x] **Phase 1 — Extraction core:** `/extract` endpoint; caption + optional audio/vision → validated JSON via the LLM; testable from a script.
-- [ ] **Phase 2 — Accounts:** sign-up / log-in / log-out / password reset; JWT; recipes tied to users; local-first migration.
+- [x] **Phase 2 — Accounts:** sign-up / log-in / log-out / password reset; JWT; recipes tied to users; local-first migration.
 - [ ] **Phase 3 — Mobile app:** add-recipe, recipe view, my-recipes; wired to the backend.
 - [ ] **Phase 4 — Share sheet:** register as a share target on iOS + Android.
 - [ ] **Phase 5 — Monetization:** cap tracking, paywall, RevenueCat IAP, server-side receipt validation, restore purchases.

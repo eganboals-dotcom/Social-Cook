@@ -8,10 +8,15 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
+from app.api.auth import router as auth_router
 from app.api.extract import router as extract_router
 from app.api.health import router as health_router
+from app.api.recipes import router as recipes_router
 from app.config import get_settings
+from app.rate_limit import limiter
 
 
 def create_app() -> FastAPI:
@@ -30,11 +35,16 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
+    # Rate limiting for auth endpoints (slowapi).
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
     app.include_router(health_router)
     app.include_router(extract_router)
+    app.include_router(auth_router)
+    app.include_router(recipes_router)
 
     # Routers added in later phases:
-    #   Phase 2: auth + recipes routers
     #   Phase 5: purchases/webhook router
     return app
 
