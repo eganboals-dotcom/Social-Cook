@@ -105,3 +105,31 @@ def test_pipeline_with_caption(monkeypatch):
     assert outcome.raw_extraction["signals_used"] == ["caption"]
     assert outcome.recipe.ingredients[0].amount == "2"
     assert outcome.recipe.ingredients[0].unit is None
+
+
+def test_to_recipe_servings_blank_becomes_none():
+    recipe = llm._to_recipe(
+        {
+            "found": True,
+            "title": "X",
+            "servings": "   ",
+            "ingredients": [{"name": "egg", "amount": "1", "unit": ""}],
+            "steps": [{"order": 1, "text": "Cook."}],
+            "notes": "",
+        }
+    )
+    assert recipe.servings is None
+
+
+def test_to_recipe_blank_step_text_raises():
+    with pytest.raises(NoRecipeFoundError):
+        llm._to_recipe(
+            {
+                "found": True,
+                "title": "X",
+                "servings": "",
+                "ingredients": [{"name": "egg", "amount": "1", "unit": ""}],
+                "steps": [{"order": 1, "text": "   "}],
+                "notes": "",
+            }
+        )

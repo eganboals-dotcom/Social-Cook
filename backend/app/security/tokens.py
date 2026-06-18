@@ -5,7 +5,7 @@ token can't be used to reset a password (or vice-versa).
 """
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 
@@ -20,7 +20,7 @@ class TokenError(Exception):
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def _encode(user_id: int, token_type: str, expires_in: timedelta) -> str:

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import pytest
-
 from app.config import get_settings
 from app.monetization.revenuecat import (
     parse_non_subscriptions,
@@ -116,7 +114,9 @@ def test_webhook_credits_and_is_idempotent(client, monkeypatch):
     assert client.get("/auth/me", headers=auth).json()["saved_recipe_cap"] == 50
 
     # A new transaction -> another +25.
-    second = client.post("/purchases/webhook", json=_webhook_body(user_id, "txn_2"), headers=headers)
+    second = client.post(
+        "/purchases/webhook", json=_webhook_body(user_id, "txn_2"), headers=headers
+    )
     assert second.json()["status"] == "credited"
     assert client.get("/auth/me", headers=auth).json()["saved_recipe_cap"] == 75
 
@@ -170,3 +170,38 @@ def test_validate_reconciles_transactions(client, monkeypatch):
 
 def test_validate_requires_auth(client):
     assert client.post("/purchases/validate").status_code == 401
+
+
+def _recipe(title: str, source_url: str):
+    return {
+        "title": title,
+        "servings": "1",
+        "source_url": source_url,
+        "source_platform": "tiktok",
+        "ingredients": [{"name": "egg", "amount": "1", "unit": ""}],
+        "steps": [{"order": 1, "text": "Cook."}],
+    }
+
+
+def test_credit_raises_cap_and_allows_more_saves(client, monkeypatch):
+    """Integration: hitting the cap, then a purchase, lets the user save again."""
+    monkeypatch.setattr(get_settings(), "revenuecat_webhook_auth", WEBHOOK_SECRET)
+    user_id, auth = _signup(client, "more@c.com")
+
+    for i in range(25):  # fill the free cap
+        resp = client.post("/recipes", json=_recipe(f"R{i}", f"u{i}"), headers=auth)
+        assert resp.status_code == 201
+
+    # 26th is blocked by the cap.
+    assert client.post("/recipes", json=_recipe("R25", "u25"), headers=auth).status_code == 402
+
+    # A validated purchase raises the cap by 25.
+    credited = client.post(
+        "/purchases/webhook",
+        json=_webhook_body(user_id, "txn_more"),
+        headers={"Authorization": WEBHOOK_SECRET},
+    )
+    assert credited.json()["status"] == "credited"
+
+    # Now the same save succeeds.
+    assert client.post("/recipes", json=_recipe("R25", "u25"), headers=auth).status_code == 201

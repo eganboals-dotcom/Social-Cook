@@ -103,3 +103,16 @@ def test_import_migration(client):
     assert body["duplicates"] == 1
     assert body["skipped_over_cap"] == 0
     assert body["saved_recipe_count"] == 3
+
+
+def test_cannot_access_other_users_recipe(client):
+    owner = _auth_headers(client, "owner@c.com")
+    recipe_id = client.post("/recipes", json=_recipe(), headers=owner).json()["recipe"]["id"]
+
+    other = _auth_headers(client, "other@c.com")
+    assert client.get(f"/recipes/{recipe_id}", headers=other).status_code == 404
+    patched = client.patch(f"/recipes/{recipe_id}", json={"title": "hax"}, headers=other)
+    assert patched.status_code == 404
+    assert client.delete(f"/recipes/{recipe_id}", headers=other).status_code == 404
+    # Owner's recipe is untouched.
+    assert client.get(f"/recipes/{recipe_id}", headers=owner).status_code == 200

@@ -4,8 +4,8 @@ Paste or **share** a link to a cooking video from TikTok, Instagram Reels, or
 YouTube Shorts and get back a clean, structured recipe — title, servings,
 ingredient list, and numbered steps — saved to your account.
 
-> **Status:** Phase 5 (monetization) complete — paywall + RevenueCat IAP with
-> server-side validated unlocks. See the [roadmap](#build-roadmap) below.
+> **Status:** v1 complete (Phases 0–6) — extraction, accounts, mobile app, share
+> sheet, monetization, and a polish pass. See the [roadmap](#build-roadmap) below.
 
 ---
 
@@ -99,11 +99,15 @@ uvicorn app.main:app --reload --port 8000
 Verify: <http://localhost:8000/health> → `{"status":"ok"}`.
 Interactive API docs: <http://localhost:8000/docs>.
 
-Run the tests:
+Run the checks:
 
 ```bash
-cd backend && source .venv/bin/activate && pytest
+cd backend && source .venv/bin/activate
+pytest          # 40 tests
+ruff check .    # lint
 ```
+
+The mobile app is typechecked with `cd mobile && npx tsc --noEmit`.
 
 ### Mobile
 
@@ -251,4 +255,4 @@ All secrets live in environment variables — **never commit API keys**. Copy
 - [x] **Phase 3 — Mobile app:** add-recipe, recipe view, my-recipes; wired to the backend.
 - [x] **Phase 4 — Share sheet:** register as a share target on iOS + Android.
 - [x] **Phase 5 — Monetization:** cap tracking, paywall, RevenueCat IAP, server-side receipt validation, restore purchases.
-- [ ] **Phase 6 — Polish:** error/empty/loading states, search, tests for extraction + cap logic.
+- [x] **Phase 6 — Polish:** error/empty/loading states, search, tests for extraction + cap logic.

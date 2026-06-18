@@ -63,7 +63,7 @@ def main() -> None:
     parser.add_argument("--url", default=SAMPLE_URL)
     parser.add_argument("--caption", default=SAMPLE_CAPTION)
     parser.add_argument("--audio", action="store_true", help="enable audio (no-op without media)")
-    parser.add_argument("--vision", action="store_true", help="enable vision (no-op without frames)")
+    parser.add_argument("--vision", action="store_true", help="enable vision (needs frames)")
     asyncio.run(_run(parser.parse_args()))
 
 
