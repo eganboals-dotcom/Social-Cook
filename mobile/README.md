@@ -52,5 +52,19 @@ mobile/
 - **Cap:** saving past the limit returns `402`; the app surfaces the message
   (the full paywall / in-app-purchase flow lands in Phase 5).
 
-The share-target config plugin (share a post straight into the app) lands in
-Phase 4.
+## Share sheet (Phase 4)
+
+The app registers as a **share target** via `expo-share-intent` (config plugin in
+`app.json` + `ShareIntentProvider` in `app/_layout.tsx`). Sharing a TikTok / Reel /
+Short — or any link or text — into Social Cook opens the **Add** screen pre-filled
+and starts extraction automatically. This is the ToS-clean primary path: the OS
+hands us the link/caption, so we never scrape platform media.
+
+> ⚠️ Share extensions **do not run in Expo Go** — you need a development build:
+>
+> ```bash
+> npx expo prebuild            # generates ios/ + android/ with the share extension
+> npx expo run:ios             # or: npx expo run:android  (a dev client, not Expo Go)
+> ```
+>
+> Then use the OS share sheet from another app to share a link into Social Cook.

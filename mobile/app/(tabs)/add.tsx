@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert, StyleSheet, Text } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import * as api from '../../src/api/client';
 import { ApiError } from '../../src/api/client';
@@ -24,6 +24,9 @@ interface Extracted {
 export default function AddScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  // Set when the app is opened via the share sheet (see app/_layout.tsx).
+  const params = useLocalSearchParams<{ sharedUrl?: string; sharedText?: string }>();
+
   const [url, setUrl] = useState('');
   const [caption, setCaption] = useState('');
   const [showCaption, setShowCaption] = useState(false);
@@ -32,17 +35,18 @@ export default function AddScreen() {
   const [error, setError] = useState<string | null>(null);
   const [extracted, setExtracted] = useState<Extracted | null>(null);
 
-  async function onExtract() {
+  const handledShareRef = useRef('');
+
+  async function runExtract(link: string, cap?: string) {
     setError(null);
     setExtracted(null);
-    const link = url.trim();
     if (!link) {
       setError('Paste a link to a cooking video first.');
       return;
     }
     setLoading(true);
     try {
-      const resp = await api.extractRecipe(link, caption.trim() || undefined);
+      const resp = await api.extractRecipe(link, cap);
       setExtracted({
         recipe: resp.recipe,
         platform: resp.source_platform ?? null,
@@ -55,6 +59,34 @@ export default function AddScreen() {
       setLoading(false);
     }
   }
+
+  function onExtract() {
+    void runExtract(url.trim(), caption.trim() || undefined);
+  }
+
+  // Handle content shared into the app: prefill the fields and auto-extract.
+  useEffect(() => {
+    const sharedUrl = (params.sharedUrl ?? '').trim();
+    const sharedText = (params.sharedText ?? '').trim();
+    if (!sharedUrl && !sharedText) return;
+
+    const signature = `${sharedUrl}|${sharedText}`;
+    if (handledShareRef.current === signature) return;
+    handledShareRef.current = signature;
+
+    const urlFromText = sharedText.match(/https?:\/\/\S+/)?.[0] ?? '';
+    const finalUrl = sharedUrl || urlFromText;
+    const finalCaption = sharedText && sharedText !== finalUrl ? sharedText : '';
+
+    if (finalUrl) setUrl(finalUrl);
+    if (finalCaption) {
+      setCaption(finalCaption);
+      setShowCaption(true);
+    }
+    void runExtract(finalUrl, finalCaption || undefined);
+    // Only re-run when the shared params change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.sharedUrl, params.sharedText]);
 
   async function onSave() {
     if (!extracted) return;
@@ -97,8 +129,8 @@ export default function AddScreen() {
   return (
     <Screen scroll>
       <Text style={styles.intro}>
-        Paste a link to a TikTok, Reel, or YouTube Short. Adding the caption text gives the best
-        results.
+        Paste a link to a TikTok, Reel, or YouTube Short — or share one straight into Social Cook.
+        Adding the caption text gives the best results.
       </Text>
 
       <TextField
