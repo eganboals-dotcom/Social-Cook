@@ -1,0 +1,42 @@
+# ---- Secrets / environment ----
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ---- Python (backend) ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- Node / Expo (mobile) ----
+node_modules/
+.expo/
+.expo-shared/
+dist/
+web-build/
+*.log
+npm-debug.*
+yarn-error.*
+.pnpm-debug.*
+
+# Expo prebuild output — regenerated from config; keep out of source control
+# until/unless we hand-customize native code.
+mobile/ios/
+mobile/android/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
