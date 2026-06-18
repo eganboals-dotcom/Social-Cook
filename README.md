@@ -4,8 +4,8 @@ Paste or **share** a link to a cooking video from TikTok, Instagram Reels, or
 YouTube Shorts and get back a clean, structured recipe — title, servings,
 ingredient list, and numbered steps — saved to your account.
 
-> **Status:** Phase 2 (accounts) complete — email/password auth with JWT, and
-> recipes saved per-user behind a cap. See the [roadmap](#build-roadmap) below.
+> **Status:** Phase 3 (mobile app) complete — Expo app wired to the backend:
+> extract, save, browse, edit, and accounts. See the [roadmap](#build-roadmap) below.
 
 ---
 
@@ -227,7 +227,7 @@ All secrets live in environment variables — **never commit API keys**. Copy
 - [x] **Phase 0 — Setup:** repo structure, FastAPI skeleton, Expo skeleton, `.env.example`, README.
 - [x] **Phase 1 — Extraction core:** `/extract` endpoint; caption + optional audio/vision → validated JSON via the LLM; testable from a script.
 - [x] **Phase 2 — Accounts:** sign-up / log-in / log-out / password reset; JWT; recipes tied to users; local-first migration.
-- [ ] **Phase 3 — Mobile app:** add-recipe, recipe view, my-recipes; wired to the backend.
+- [x] **Phase 3 — Mobile app:** add-recipe, recipe view, my-recipes; wired to the backend.
 - [ ] **Phase 4 — Share sheet:** register as a share target on iOS + Android.
 - [ ] **Phase 5 — Monetization:** cap tracking, paywall, RevenueCat IAP, server-side receipt validation, restore purchases.
 - [ ] **Phase 6 — Polish:** error/empty/loading states, search, tests for extraction + cap logic.
